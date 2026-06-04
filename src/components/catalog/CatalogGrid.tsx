@@ -2,16 +2,23 @@
 
 import { useState, useMemo } from "react"
 import { Search } from "lucide-react"
-import { PRODUCTS, CATEGORIES } from "@/lib/products"
+import { Product } from "@/types"
+import { buildCategories } from "@/lib/products"
 import { ProductCard } from "./ProductCard"
 import { clsx } from "clsx"
 
-export function CatalogGrid() {
+interface CatalogGridProps {
+  products: Product[]
+}
+
+export function CatalogGrid({ products }: CatalogGridProps) {
   const [activeCategory, setActiveCategory] = useState("todos")
   const [query, setQuery] = useState("")
 
+  const categories = useMemo(() => buildCategories(products), [products])
+
   const filtered = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    return products.filter((p) => {
       const matchCat = activeCategory === "todos" || p.category === activeCategory
       const matchQ =
         query.trim() === "" ||
@@ -19,7 +26,7 @@ export function CatalogGrid() {
         p.description.toLowerCase().includes(query.toLowerCase())
       return matchCat && matchQ
     })
-  }, [activeCategory, query])
+  }, [products, activeCategory, query])
 
   return (
     <section id="catalogo" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -29,8 +36,11 @@ export function CatalogGrid() {
           Nosso mercado
         </p>
         <h2 className="font-display text-3xl sm:text-4xl text-gray-900 font-bold">
-          Produtos do dia
+          Produtos e preços
         </h2>
+        <p className="font-body text-gray-500 text-sm mt-1">
+          Confira valores e disponibilidade. Dúvidas? Fale com o assistente no canto da tela.
+        </p>
       </div>
 
       {/* Search */}
@@ -43,7 +53,7 @@ export function CatalogGrid() {
           onChange={(e) => setQuery(e.target.value)}
           className={clsx(
             "w-full pl-10 pr-4 py-2.5 rounded-full border border-cream-400",
-            "bg-white font-body text-sm text-gray-800 placeholder:text-gray-400",
+            "bg-white font-body text-[16px] text-gray-800 placeholder:text-gray-400",
             "focus:outline-none focus:ring-2 focus:ring-brand-300",
           )}
         />
@@ -51,7 +61,7 @@ export function CatalogGrid() {
 
       {/* Category tabs */}
       <div className="flex gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none">
-        {CATEGORIES.map((cat) => (
+        {categories.map((cat) => (
           <button
             key={cat.id}
             onClick={() => setActiveCategory(cat.id)}
@@ -77,12 +87,12 @@ export function CatalogGrid() {
           <p className="text-sm mt-1">Tente outra busca ou categoria</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
           {filtered.map((product, i) => (
             <ProductCard
               key={product.id}
               product={product}
-              style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+              style={{ animationDelay: `${Math.min(i, 12) * 40}ms`, animationFillMode: "both" }}
             />
           ))}
         </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { buildSystemPrompt } from "@/lib/chat"
+import { getProducts } from "@/lib/products"
 
 export const runtime = "edge"
 
@@ -91,7 +92,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const systemPrompt = buildSystemPrompt()
+    const products = await getProducts()
+    const systemPrompt = buildSystemPrompt(products)
 
     const promises = NIM_MODELS.map(async (model) => {
       const text = await callNim(

@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { market } from "@/lib/config";
 
 export const metadata: Metadata = {
-  title: "DINIZ – Comercial e Frios | Qualidade e preço justo",
-  description:
-    "Comercial e Frios DINIZ em Irecê – BA: frios selecionados, produtos frescos e o melhor preço do bairro. Aceitamos todos os cartões e Pix.",
+  title: `${market.name} | Qualidade e preço justo`,
+  description: `${market.name}: ${market.description}. Consulte preços e disponibilidade dos produtos.`,
   icons: { icon: "/favicon.svg" },
 };
 

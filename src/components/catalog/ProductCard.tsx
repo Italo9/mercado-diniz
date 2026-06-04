@@ -5,13 +5,13 @@ import { Product } from "@/types"
 import { clsx } from "clsx"
 
 const BADGE_STYLES = {
-  oferta:    "bg-brand-500 text-white",
-  novidade:  "bg-sage-500 text-white",
-  destaque:  "bg-amber-500 text-white",
+  oferta: "bg-brand-500 text-white",
+  novidade: "bg-sage-500 text-white",
+  destaque: "bg-amber-500 text-white",
 }
 
 const BADGE_LABELS = {
-  oferta:   "Oferta",
+  oferta: "Oferta",
   novidade: "Novidade",
   destaque: "Destaque",
 }
@@ -31,9 +31,9 @@ export function ProductCard({ product, style }: ProductCardProps) {
     <article
       className={clsx(
         "group relative bg-white rounded-2xl overflow-hidden shadow-sm",
-        "border border-cream-300 hover:shadow-lg hover:-translate-y-1",
-        "transition-all duration-300 ease-out animate-fade-up",
-        !product.inStock && "opacity-60",
+        "border border-cream-300 transition-all duration-300 ease-out animate-fade-up",
+        "hover:shadow-lg hover:-translate-y-1",
+        !product.inStock && "opacity-70",
       )}
       style={style}
     >
@@ -41,7 +41,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
       {product.badge && (
         <span
           className={clsx(
-            "absolute top-3 left-3 z-10 text-xs font-body font-semibold",
+            "absolute top-3 left-3 z-10 text-[10px] sm:text-xs font-body font-semibold",
             "px-2.5 py-1 rounded-full tracking-wide uppercase",
             BADGE_STYLES[product.badge],
           )}
@@ -52,7 +52,7 @@ export function ProductCard({ product, style }: ProductCardProps) {
 
       {/* Out of stock overlay */}
       {!product.inStock && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 rounded-2xl">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/50">
           <span className="bg-gray-700 text-white text-xs font-semibold px-3 py-1 rounded-full">
             Sem estoque
           </span>
@@ -60,47 +60,52 @@ export function ProductCard({ product, style }: ProductCardProps) {
       )}
 
       {/* Image */}
-      <div className="relative h-44 overflow-hidden bg-cream-100">
-        <Image
-          src={product.image}
-          alt={product.title}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+      <div className="relative h-36 sm:h-44 overflow-hidden bg-cream-100">
+        {product.image ? (
+          <Image
+            src={product.image}
+            alt={product.title}
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-4xl text-cream-400">🛒</div>
+        )}
       </div>
 
       {/* Body */}
-      <div className="p-4">
-        <p className="text-xs text-sage-600 font-body font-medium uppercase tracking-widest mb-1">
+      <div className="p-3 sm:p-4">
+        <p className="text-[10px] sm:text-xs text-sage-600 font-body font-medium uppercase tracking-widest mb-1">
           {product.category}
         </p>
-        <h3 className="font-display text-gray-900 text-base font-bold leading-snug mb-1 text-balance">
+        <h3 className="font-display text-gray-900 text-sm sm:text-base font-bold leading-snug mb-1 text-balance">
           {product.title}
         </h3>
         <p className="text-xs text-gray-500 font-body line-clamp-2 mb-3 leading-relaxed">
           {product.description}
         </p>
 
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between gap-2">
           <div>
-            <span className="font-display text-brand-600 text-xl font-bold">
+            <span className="font-display text-brand-600 text-lg sm:text-xl font-bold">
               {priceFormatted}
             </span>
             <span className="text-gray-400 text-xs ml-1 font-body">/ {product.unit}</span>
           </div>
 
-          <button
-            disabled={!product.inStock}
+          {/* Indicador de disponibilidade (site informacional, sem pedido) */}
+          <span
             className={clsx(
-              "text-xs font-body font-semibold px-3 py-1.5 rounded-full transition-colors",
+              "flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-body font-semibold px-2 py-1 rounded-full",
               product.inStock
-                ? "bg-brand-500 text-white hover:bg-brand-600 cursor-pointer"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                : "bg-gray-100 text-gray-500 border border-gray-200",
             )}
           >
-            {product.inStock ? "Quero!" : "Indisponível"}
-          </button>
+            <span className={clsx("w-1.5 h-1.5 rounded-full", product.inStock ? "bg-emerald-500" : "bg-gray-400")} />
+            {product.inStock ? "Disponível" : "Indisponível"}
+          </span>
         </div>
       </div>
     </article>

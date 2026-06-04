@@ -14,6 +14,7 @@ const config: Config = {
         mono: ["'JetBrains Mono'", "monospace"],
       },
       colors: {
+        // DINIZ , vermelho da marca (cor primária)
         brand: {
           50:  "#fff1f1",
           100: "#ffe0e0",
@@ -27,6 +28,7 @@ const config: Config = {
           900: "#76101a",
           950: "#41060b",
         },
+        // DINIZ , dourado da logo (acento de destaque)
         gold: {
           50:  "#fffaeb",
           100: "#fff1c2",
@@ -40,6 +42,7 @@ const config: Config = {
           900: "#71370f",
           950: "#421b03",
         },
+        // DINIZ , vinho/bordô do wordmark (texto, rodapé escuro)
         sage: {
           50:  "#fbf2f3",
           100: "#f7e3e5",

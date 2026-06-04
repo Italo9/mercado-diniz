@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { X, Send, Bot } from "lucide-react"
 import { ChatMessage } from "@/types"
 import { SUGGESTIONS } from "@/lib/chat"
+import { assistant, market } from "@/lib/config"
 import { TypingIndicator } from "./TypingIndicator"
 import { clsx } from "clsx"
 
@@ -13,8 +14,7 @@ const nextId = () => String(++msgId)
 const WELCOME: ChatMessage = {
   id: "welcome",
   role: "assistant",
-  content:
-    "Oi! Eu sou o Dininho 🛒, assistente da DINIZ Comercial e Frios.\n\nPosso te ajudar a achar produtos, comparar preços e montar sua listinha. Como posso te ajudar?",
+  content: `Oi! Eu sou o ${assistant.name} 🛒, ${assistant.role} da ${market.name}.\n\nPosso te ajudar a ver preços, conferir se um produto tem em estoque e dar sugestões de compra. O que você procura?`,
   timestamp: new Date(),
 }
 
@@ -33,6 +33,11 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false)
   const [unread, setUnread] = useState(0)
   const [showPill, setShowPill] = useState(true)
+
+  // Posição do botão flutuante (null = canto inferior direito padrão)
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
+  const drag = useRef({ active: false, moved: false, startX: 0, startY: 0, originX: 0, originY: 0 })
+  const launcherRef = useRef<HTMLDivElement>(null)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -59,6 +64,58 @@ export function ChatWidget() {
     }
     document.body.style.overflow = ""
   }, [open])
+
+  // --- Arrastar o botão flutuante ---
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const rect = launcherRef.current?.getBoundingClientRect()
+    if (!rect) {
+      return
+    }
+    drag.current = {
+      active: true,
+      moved: false,
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: rect.left,
+      originY: rect.top,
+    }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }, [])
+
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current
+    if (!d.active) {
+      return
+    }
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (Math.abs(dx) > 6 || Math.abs(dy) > 6) {
+      d.moved = true
+      setShowPill(false)
+    }
+    if (!d.moved) {
+      return
+    }
+    const rect = launcherRef.current?.getBoundingClientRect()
+    const w = rect?.width ?? 56
+    const h = rect?.height ?? 56
+    const x = Math.min(Math.max(8, d.originX + dx), window.innerWidth - w - 8)
+    const y = Math.min(Math.max(8, d.originY + dy), window.innerHeight - h - 8)
+    setPos({ x, y })
+  }, [])
+
+  const onPointerUp = useCallback((e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current
+    d.active = false
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    } catch {
+      // ignora
+    }
+    if (!d.moved) {
+      setOpen(true)
+    }
+  }, [])
 
   const sendMessage = useCallback(
     async (text: string) => {
@@ -127,21 +184,28 @@ export function ChatWidget() {
 
   return (
     <>
-      {/* Estado fechado: selo com o nome + botão flutuante */}
+      {/* Botão flutuante (arrastável) + selo com o nome */}
       {!open && (
-        <div className="fixed bottom-16 right-5 z-50 flex items-center gap-2">
+        <div
+          ref={launcherRef}
+          className={clsx("fixed z-50 w-14 h-14", !pos && "bottom-5 right-5")}
+          style={pos ? { left: pos.x, top: pos.y } : undefined}
+        >
           {showPill && (
             <button
               onClick={() => setOpen(true)}
-              className="max-w-[58vw] sm:max-w-none bg-white text-sage-800 text-sm font-body font-semibold pl-3.5 pr-4 py-2.5 rounded-full shadow-lg ring-1 ring-cream-300 animate-fade-up text-left leading-snug"
+              className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap bg-white text-sage-800 text-sm font-body font-semibold pl-3.5 pr-4 py-2.5 rounded-full shadow-lg ring-1 ring-cream-300 animate-fade-up"
             >
-              👋 Fale com o <span className="text-brand-600 font-bold">Dininho</span>
+              👋 Fale com o <span className="text-brand-600 font-bold">{assistant.name}</span>
             </button>
           )}
           <button
-            onClick={() => setOpen(true)}
-            aria-label="Abrir assistente Dininho"
-            className="relative w-14 h-14 rounded-full shadow-xl bg-brand-600 hover:bg-brand-700 text-white ring-2 ring-gold-400/60 flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-gold-300 flex-shrink-0"
+            onPointerDown={onPointerDown}
+            onPointerMove={onPointerMove}
+            onPointerUp={onPointerUp}
+            aria-label={`Abrir ${assistant.name} (arraste para reposicionar)`}
+            style={{ touchAction: "none" }}
+            className="relative w-14 h-14 rounded-full shadow-xl bg-brand-600 hover:bg-brand-700 text-white ring-2 ring-gold-400/60 flex items-center justify-center transition-colors focus:outline-none focus:ring-4 focus:ring-gold-300 cursor-grab active:cursor-grabbing"
           >
             <Bot className="w-6 h-6" />
             {unread > 0 && (
@@ -156,7 +220,7 @@ export function ChatWidget() {
       {/* Painel: tela cheia no mobile, card flutuante em telas maiores */}
       <div
         role="dialog"
-        aria-label="Assistente Dininho"
+        aria-label={`Assistente ${assistant.name}`}
         aria-hidden={!open}
         className={clsx(
           "fixed z-50 bg-white flex flex-col overflow-hidden transition-opacity duration-200",
@@ -172,8 +236,8 @@ export function ChatWidget() {
               <Bot className="w-5 h-5 text-sage-900" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-white font-body font-semibold text-sm leading-none">Dininho</p>
-              <p className="text-gold-200 text-xs mt-0.5">Assistente da DINIZ &middot; online</p>
+              <p className="text-white font-body font-semibold text-sm leading-none">{assistant.name}</p>
+              <p className="text-gold-200 text-xs mt-0.5">{market.shortName} &middot; online</p>
             </div>
           </div>
           <button
@@ -251,7 +315,7 @@ export function ChatWidget() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Pergunte sobre nossos produtos…"
+            placeholder="Pergunte sobre preços e produtos…"
             disabled={loading}
             enterKeyHint="send"
             className="flex-1 bg-cream-100 rounded-full px-4 py-2.5 text-[16px] font-body text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-300 disabled:opacity-50"

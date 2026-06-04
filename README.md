@@ -1,21 +1,24 @@
-# 🛒 DINIZ — Comercial e Frios (MVP)
+# 🛒 DINIZ , Comercial e Frios (MVP)
 
-Site institucional mobile-first com catálogo de produtos e assistente de IA ("Dininho") para a DINIZ Comercial e Frios — Irecê/BA.
+Site institucional com catálogo de produtos e assistente de IA para a DINIZ Comercial e Frios.
 
 ## Stack
 
 - **Next.js 14** (App Router + Edge Runtime)
 - **TypeScript** + **Tailwind CSS**
-- **NVIDIA NIM** — agente "Dininho" com fallback entre modelos gratuitos
-- **Docker** para deploy
+- **NVIDIA NIM** , agente "Dininho" com fallback entre 4 modelos gratuitos
+- **Docker** para deploy sem dor de cabeça
 
-## Modelos NVIDIA NIM (fallback, primeiro que responder vence)
+## Modelos NVIDIA NIM (fallback em ordem)
 
-| Modelo | Especialidade |
-|--------|---------------|
-| `deepseek-ai/deepseek-v4-flash` | Rápido, contexto longo |
-| `z-ai/glm-5.1` | Multilingual / agentic |
-| `meta/llama-3.3-70b-instruct` | Generalista (fallback estável) |
+| Modelo | Parâmetros | Especialidade |
+|--------|-----------|---------------|
+| `deepseek-ai/deepseek-v4-flash` | 284B MoE | Rápido, 1M contexto |
+| `z-ai/glm-5.1` | 744B | Multilingual, agentic |
+| `mistralai/devstral-2-123b-instruct-2512` | 123B | Código |
+| `moonshotai/kimi-k2-5` | , | Contexto longo |
+
+Se o primeiro modelo estiver indisponível, o próximo é tentado automaticamente.
 
 ## Obter API Key NVIDIA (gratuito)
 
@@ -27,17 +30,29 @@ Site institucional mobile-first com catálogo de produtos e assistente de IA ("D
 ## Rodar localmente
 
 ```bash
+# 1. Clone e entre na pasta
 cd diniz-comercial-e-frios
+
+# 2. Instale as dependências
 npm install
-cp .env.example .env.local   # cole sua NVIDIA_API_KEY
-npm run dev                  # http://localhost:3000
+
+# 3. Configure a chave da API
+cp .env.example .env.local
+# edite .env.local e cole sua NVIDIA_API_KEY
+
+# 4. Suba o servidor de desenvolvimento
+npm run dev
+# acesse http://localhost:3000
 ```
 
-## Deploy na Vercel
+## Rodar com Docker Compose
 
-1. Importe o repositório em vercel.com (Add New Project)
-2. Adicione a variável de ambiente `NVIDIA_API_KEY`
-3. Deploy — cada `git push` redeploya automaticamente
+```bash
+export NVIDIA_API_KEY=nvapi-...
+
+docker compose up --build
+# acesse http://localhost:3000
+```
 
 ## Estrutura
 
@@ -45,14 +60,21 @@ npm run dev                  # http://localhost:3000
 src/
   app/
     api/chat/route.ts   ← endpoint do Dininho (Edge)
-    layout.tsx          ← metadata + viewport (teclado mobile)
+    layout.tsx
     page.tsx
   components/
-    catalog/            ← grid, busca, filtros, card de produto
-    chat/               ← ChatWidget (mobile-first) + TypingIndicator
-    ui/                 ← Navbar, Hero, Footer, Logo
+    catalog/
+      CatalogGrid.tsx   ← grid com busca e filtros por categoria
+      ProductCard.tsx   ← card individual de produto
+    chat/
+      ChatWidget.tsx    ← chat flutuante
+      TypingIndicator.tsx
+    ui/
+      Hero.tsx
+      Navbar.tsx
+      Footer.tsx
   lib/
-    products.ts         ← catálogo (mock)
+    products.ts         ← catálogo de produtos (mock)
     chat.ts             ← sugestões e system prompt do Dininho
   types/
     index.ts
@@ -61,6 +83,7 @@ src/
 ## Próximos passos sugeridos
 
 - [ ] Integrar API real do sistema de frente de caixa da DINIZ
-- [ ] Carrinho de compras + checkout via WhatsApp
-- [ ] Painel admin para gestão de estoque
+- [ ] Adicionar carrinho de compras
+- [ ] Página de admin para gestão de estoque
+- [ ] WhatsApp click-to-chat
 - [ ] SEO local (schema.org/LocalBusiness)

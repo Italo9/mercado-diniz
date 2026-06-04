@@ -4,12 +4,12 @@ import { useState, useEffect } from "react"
 import { Menu, X, MessageCircle } from "lucide-react"
 import { clsx } from "clsx"
 import { Logo } from "./Logo"
-
-const WHATSAPP_URL = "https://wa.me/5574999995365"
+import { market, whatsappUrl } from "@/lib/config"
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const wa = whatsappUrl()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12)
@@ -27,7 +27,7 @@ export function Navbar() {
       )}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <a href="/" aria-label="DINIZ Comercial e Frios — página inicial">
+        <a href="/" aria-label={`${market.name} — página inicial`}>
           <Logo tone="dark" size="sm" />
         </a>
 
@@ -35,15 +35,17 @@ export function Navbar() {
         <div className="hidden sm:flex items-center gap-7 font-body text-sm font-semibold text-sage-800">
           <a href="#catalogo" className="hover:text-brand-600 transition-colors">Produtos</a>
           <a href="#catalogo" className="hover:text-brand-600 transition-colors">Ofertas</a>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-gold-400 text-sage-900 px-5 py-2.5 rounded-full font-bold shadow-sm hover:bg-gold-300 transition-colors"
-          >
-            <MessageCircle className="w-4 h-4" aria-hidden="true" />
-            WhatsApp
-          </a>
+          {wa && (
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gold-400 text-sage-900 px-5 py-2.5 rounded-full font-bold shadow-sm hover:bg-gold-300 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" aria-hidden="true" />
+              WhatsApp
+            </a>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -66,16 +68,18 @@ export function Navbar() {
           <a href="#catalogo" className="block py-3 text-sage-800 hover:text-brand-600" onClick={() => setMenuOpen(false)}>
             Ofertas
           </a>
-          <a
-            href={WHATSAPP_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 mt-2 bg-gold-400 text-sage-900 py-3 rounded-full font-bold"
-            onClick={() => setMenuOpen(false)}
-          >
-            <MessageCircle className="w-5 h-5" aria-hidden="true" />
-            WhatsApp — (74) 99999-5365
-          </a>
+          {wa && (
+            <a
+              href={wa}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 mt-2 bg-gold-400 text-sage-900 py-3 rounded-full font-bold"
+              onClick={() => setMenuOpen(false)}
+            >
+              <MessageCircle className="w-5 h-5" aria-hidden="true" />
+              WhatsApp{market.phoneDisplay ? ` — ${market.phoneDisplay}` : ""}
+            </a>
+          )}
         </div>
       )}
     </header>

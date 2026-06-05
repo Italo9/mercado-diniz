@@ -37,7 +37,7 @@ export const market = {
     "NEXT_PUBLIC_MARKET_DESCRIPTION",
     "frios selecionados, produtos frescos e o melhor preço do bairro",
   ),
-  city: readEnv("NEXT_PUBLIC_MARKET_CITY", "Irecê – BA"),
+  city: readEnv("NEXT_PUBLIC_MARKET_CITY", "Lagoa Nova, Irecê – BA"),
   address: readEnv("NEXT_PUBLIC_MARKET_ADDRESS", "Lagoa Nova, Irecê – BA"),
   cep: readEnv("NEXT_PUBLIC_MARKET_CEP", "44900-000"),
   hours: readEnv("NEXT_PUBLIC_MARKET_HOURS", "Seg a Sáb · fecha às 20h"),

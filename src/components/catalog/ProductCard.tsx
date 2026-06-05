@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Image from "next/image"
 import { Product } from "@/types"
 import { clsx } from "clsx"
@@ -16,16 +17,35 @@ const BADGE_LABELS = {
   destaque: "Destaque",
 }
 
+// Ícone por categoria para o tile de fallback (quando não há foto).
+const CATEGORY_ICON: Record<string, string> = {
+  hortifruti: "🥦",
+  laticinios: "🥛",
+  frios: "🧀",
+  padaria: "🍞",
+  carnes: "🥩",
+  bebidas: "🧃",
+  congelados: "🧊",
+  limpeza: "🧹",
+  higiene: "🧴",
+  mercearia: "🫙",
+  pet: "🐾",
+}
+
 interface ProductCardProps {
   product: Product
   style?: React.CSSProperties
 }
 
 export function ProductCard({ product, style }: ProductCardProps) {
+  const [imgError, setImgError] = useState(false)
+
   const priceFormatted = product.price.toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL",
   })
+
+  const showImage = product.image && !imgError
 
   return (
     <article
@@ -59,18 +79,23 @@ export function ProductCard({ product, style }: ProductCardProps) {
         </div>
       )}
 
-      {/* Image */}
+      {/* Imagem (foto real) ou tile desenhado por categoria */}
       <div className="relative h-36 sm:h-44 overflow-hidden bg-cream-100">
-        {product.image ? (
+        {showImage ? (
           <Image
             src={product.image}
             alt={product.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
+            onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl text-cream-400">🛒</div>
+          <div className="w-full h-full flex flex-col items-center justify-center gap-1 bg-gradient-to-br from-cream-100 via-cream-200 to-gold-100">
+            <span className="text-5xl" role="img" aria-label={product.category}>
+              {CATEGORY_ICON[product.category] ?? "🛒"}
+            </span>
+          </div>
         )}
       </div>
 

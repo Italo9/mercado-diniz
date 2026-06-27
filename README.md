@@ -1,12 +1,12 @@
-# 🛒 DINIZ , Comercial e Frios (MVP)
+# 🛒 Depósito do Hamiltom (MVP)
 
-Site institucional com catálogo de produtos e assistente de IA para a DINIZ Comercial e Frios.
+Site institucional com catálogo de produtos e assistente de IA para o Depósito do Hamiltom.
 
 ## Stack
 
 - **Next.js 14** (App Router + Edge Runtime)
 - **TypeScript** + **Tailwind CSS**
-- **NVIDIA NIM** , agente "Dininho" com fallback entre 4 modelos gratuitos
+- **NVIDIA NIM** , agente "Hamiltinho" com fallback entre 4 modelos gratuitos
 - **Docker** para deploy sem dor de cabeça
 
 ## Modelos NVIDIA NIM (fallback em ordem)
@@ -31,7 +31,7 @@ Se o primeiro modelo estiver indisponível, o próximo é tentado automaticament
 
 ```bash
 # 1. Clone e entre na pasta
-cd diniz-comercial-e-frios
+cd deposito-do-hamiltom
 
 # 2. Instale as dependências
 npm install
@@ -59,7 +59,7 @@ docker compose up --build
 ```
 src/
   app/
-    api/chat/route.ts   ← endpoint do Dininho (Edge)
+    api/chat/route.ts   ← endpoint do Hamiltinho (Edge)
     layout.tsx
     page.tsx
   components/
@@ -75,14 +75,14 @@ src/
       Footer.tsx
   lib/
     products.ts         ← catálogo de produtos (mock)
-    chat.ts             ← sugestões e system prompt do Dininho
+    chat.ts             ← sugestões e system prompt do Hamiltinho
   types/
     index.ts
 ```
 
 ## Próximos passos sugeridos
 
-- [ ] Integrar API real do sistema de frente de caixa da DINIZ
+- [ ] Integrar API real do sistema de frente de caixa do Depósito do Hamiltom
 - [ ] Adicionar carrinho de compras
 - [ ] Página de admin para gestão de estoque
 - [ ] WhatsApp click-to-chat

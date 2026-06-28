@@ -23,13 +23,6 @@ const PILL_PHRASES = [
   "Converse agora com o",
 ]
 
-const WELCOME: ChatMessage = {
-  id: "welcome",
-  role: "assistant",
-  content: `Oi! Eu sou o ${assistant.name} 🛒, ${assistant.role} do ${market.name}.\n\nFunciono 24 horas: me diga um produto e eu confiro na hora o preço e se tem em estoque. Se estiver em falta, te indico uma alternativa que temos. Quer, também posso te passar para um atendente. O que você procura?`,
-  timestamp: new Date(),
-}
-
 function TomAvatar() {
   return (
     <div className="w-8 h-8 rounded-full bg-gold-400 flex items-center justify-center flex-shrink-0 shadow-sm ring-1 ring-gold-300/50">
@@ -41,8 +34,24 @@ function TomAvatar() {
 type Mode = "bot" | "askName" | "human"
 
 export function ChatWidget() {
+  // Renderiza só no cliente. O widget tem conteúdo que depende do ambiente
+  // (horário das mensagens com toLocaleTimeString, id de sessão aleatório), o
+  // que quebraria a hidratação se renderizado no servidor. Renderizar apenas
+  // após montar elimina qualquer divergência servidor/cliente.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([WELCOME])
+  const [messages, setMessages] = useState<ChatMessage[]>(() => [
+    {
+      id: "welcome",
+      role: "assistant",
+      content: `Oi! Eu sou o ${assistant.name} 🛒, ${assistant.role} do ${market.name}.\n\nFunciono 24 horas: me diga um produto e eu confiro na hora o preço e se tem em estoque. Se estiver em falta, te indico uma alternativa que temos. Quer, também posso te passar para um atendente. O que você procura?`,
+      timestamp: new Date(),
+    },
+  ])
   const [input, setInput] = useState("")
   const [loading, setLoading] = useState(false)
   const [unread, setUnread] = useState(0)
@@ -157,9 +166,7 @@ export function ChatWidget() {
         if (Array.isArray(d.messages)) {
           for (const m of d.messages) {
             pushAssistant(m.text, true)
-            if (!open) {
-              setUnread((n) => n + 1)
-            }
+            setUnread((n) => n + 1)
           }
         }
         if (d.ended) {
@@ -178,7 +185,7 @@ export function ChatWidget() {
         // mantém o polling; tenta de novo no próximo ciclo
       }
     }, 3000)
-  }, [sessionId, open, pushAssistant, stopPolling])
+  }, [sessionId, pushAssistant, stopPolling])
 
   useEffect(() => {
     return () => {
@@ -372,6 +379,11 @@ export function ChatWidget() {
         : "Pergunte sobre preços e produtos…"
 
   const humanMode = mode === "human"
+
+  // Nada é renderizado no servidor: evita erro de hidratação (#418/#423/#425).
+  if (!mounted) {
+    return null
+  }
 
   return (
     <>

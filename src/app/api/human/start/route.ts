@@ -9,7 +9,6 @@ const TOKEN = process.env.RELAY_AUTH_TOKEN || "change-me"
 async function post(path: string, body: unknown) {
   if (!RELAY) return null
   try {
-    console.log("[START-PROXY] calling", path)
     const res = await fetch(`${RELAY}${path}`, {
       method: "POST",
       headers: {
@@ -18,11 +17,8 @@ async function post(path: string, body: unknown) {
       },
       body: JSON.stringify(body),
     })
-    const data = await res.json()
-    console.log("[START-PROXY] response ok:", data?.ok, "enabled:", data?.enabled)
-    return data
-  } catch (e: any) {
-    console.error("[START-PROXY] error:", e?.message || e)
+    return await res.json()
+  } catch {
     return null
   }
 }

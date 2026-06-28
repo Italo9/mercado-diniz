@@ -62,7 +62,6 @@ function enqueueToAllActive(text) {
   for (const s of Array.from(sessions.values())) {
     if (s.active) {
       s.queue.push({ id: nextId(), text, at: Date.now() })
-      console.log("[RELAY] enfileirado na sessao", s.id.substring(0, 8), "queue size:", s.queue.length)
       count += 1
     }
   }
@@ -83,23 +82,14 @@ const lastPolled = new Map()
 function drainSession(id) {
   const s = sessions.get(id)
   if (!s) {
-    console.log("[RELAY] drain", id.substring(0,8), "sessao NAO encontrada")
     return { active: false, messages: [], ended: null }
   }
 
   const since = lastPolled.get(id) || 0
   const now = Date.now()
-  
-  // Log detalhado pra debug
-  if (s.queue.length > 0) {
-    s.queue.forEach(m => console.log("[RELAY] queue item at:", m.at, "since:", since, "delta:", m.at - since, "match:", m.at > since))
-  }
-  
   const messages = s.queue.filter((m) => m.at > since)
-  console.log("[RELAY] drain", id.substring(0,8), "since:", since, "queue:", s.queue.length, "returned:", messages.length)
   lastPolled.set(id, now)
 
-  // Limpa mensagens ja entregues
   s.queue = s.queue.filter((m) => m.at > since)
 
   const ended = s.ended
@@ -234,16 +224,7 @@ async function connectWhatsApp() {
       // Ignora eco das mensagens enviadas pelo relay (prefixos conhecidos)
       if (isMe && (text.startsWith("Cliente:") || text.startsWith("*NOVO"))) continue
 
-      console.log("[WHATSAPP] texto do atendente:", text.substring(0, 80))
-
-      // Entrega a TODAS as sessoes ativas (corrige o caso de a resposta cair na
-      // sessao errada quando o activeSessionId mudou).
       const delivered = enqueueToAllActive(text.trim())
-      if (delivered === 0) {
-        console.log("[WHATSAPP] sem sessao ativa para entregar a resposta")
-      } else {
-        console.log(`[WHATSAPP] resposta entregue a ${delivered} sessao(oes)`)
-      }
     }
   })
 }
@@ -269,20 +250,6 @@ app.get("/status", auth, (_req, res) => {
 })
 
 // Diagnostico: lista as sessoes, qual esta ativa e quantas mensagens estao na fila.
-app.get("/debug", auth, (_req, res) => {
-  res.json({
-    activeSessionId,
-    connection: connectionState,
-    sessions: Array.from(sessions.values()).map((s) => ({
-      id: s.id,
-      name: s.name,
-      active: s.active,
-      queued: s.queue.length,
-      ended: s.ended,
-    })),
-  })
-})
-
 app.post("/start", auth, async (req, res) => {
   const { sessionId, name } = req.body
   if (!sessionId || !name || !name.trim()) {
@@ -336,22 +303,24 @@ app.post("/message", auth, async (req, res) => {
 
 app.get("/poll", auth, (req, res) => {
   const sessionId = req.query.sessionId
-  console.log("[RELAY] /poll recebido", sessionId ? sessionId.substring(0,8) : "sem id", new Date().toISOString())
   if (!sessionId) {
     return res.json({ active: false, messages: [], ended: null })
   }
   sweepTimeouts()
   const result = drainSession(sessionId)
-  if (result.messages.length > 0) {
-    console.log("[RELAY] poll", sessionId.substring(0, 8), "entregou", result.messages.length, "msgs")
-  }
   return res.json(result)
 })
 
-app.post("/end", auth, (req, res) => {
+app.post("/end", auth, async (req, res) => {
   const { sessionId } = req.body
   if (!sessionId) {
     return res.status(400).json({ ok: false, error: "dados incompletos" })
+  }
+  const session = sessions.get(sessionId)
+  if (session && session.active && WHATSAPP_ENABLED && connectionState === "open") {
+    try {
+      await sendToAttendant(`Cliente ${session.name} encerrou o atendimento.`)
+    } catch (_) {}
   }
   endSession(sessionId, "manual")
   res.json({ ok: true })

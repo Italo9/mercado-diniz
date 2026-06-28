@@ -82,13 +82,24 @@ const lastPolled = new Map()
 
 function drainSession(id) {
   const s = sessions.get(id)
-  if (!s) return { active: false, messages: [], ended: null }
+  if (!s) {
+    console.log("[RELAY] drain", id.substring(0,8), "sessao NAO encontrada")
+    return { active: false, messages: [], ended: null }
+  }
 
   const since = lastPolled.get(id) || 0
+  const now = Date.now()
+  
+  // Log detalhado pra debug
+  if (s.queue.length > 0) {
+    s.queue.forEach(m => console.log("[RELAY] queue item at:", m.at, "since:", since, "delta:", m.at - since, "match:", m.at > since))
+  }
+  
   const messages = s.queue.filter((m) => m.at > since)
-  lastPolled.set(id, Date.now())
+  console.log("[RELAY] drain", id.substring(0,8), "since:", since, "queue:", s.queue.length, "returned:", messages.length)
+  lastPolled.set(id, now)
 
-  // Limpa mensagens ja entregues (mais antigas que o since atual)
+  // Limpa mensagens ja entregues
   s.queue = s.queue.filter((m) => m.at > since)
 
   const ended = s.ended

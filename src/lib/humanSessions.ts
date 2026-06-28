@@ -115,7 +115,8 @@ export function drainSession(id: string): {
 // Encerra automaticamente sessões sem atividade do cliente além do limite.
 export function sweepTimeouts(): void {
   const now = Date.now()
-  for (const session of sessions.values()) {
+  // Array.from evita exigir downlevelIteration ao percorrer o Map.
+  for (const session of Array.from(sessions.values())) {
     if (session.active && now - session.lastClientActivity >= HUMAN_TIMEOUT_MS) {
       endSession(session.id, "timeout")
     }
